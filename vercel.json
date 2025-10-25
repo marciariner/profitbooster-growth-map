@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "framework": null,
+  "functions": {
+    "api/growth-map.ts": {
+      "runtime": "edge"
+    }
+  }
+}
