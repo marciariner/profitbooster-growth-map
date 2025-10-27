@@ -2,12 +2,18 @@
   "version": 2,
   "framework": null,
   "functions": {
+    "api/**/*.js": {
+      "runtime": "edge"
+    },
     "api/**/*.ts": {
       "runtime": "edge"
     }
   },
+  "builds": [
+    { "src": "api/**/*.js", "use": "@vercel/node" },
+    { "src": "api/**/*.ts", "use": "@vercel/node" }
+  ],
   "routes": [
-    { "src": "/results(?:\\.html)?$", "dest": "/results.html" },
     { "src": "/api/(.*)", "dest": "/api/$1" }
   ]
 }
