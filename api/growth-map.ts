@@ -1,103 +1,94 @@
-// api/growth-map.ts — Edge Function with CORS
-const CORS_HEADERS = {
+const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization"
 };
 
-export const config = { runtime: 'edge' };
+export const config = { runtime: "edge" };
 
 export default async function handler(req: Request) {
-  // 1) Preflight
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: CORS_HEADERS });
-  }
-
-  // 2) Only allow POST for real work
-  if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Invalid request' }), {
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
+  if (req.method !== "POST") {
+    return new Response(JSON.stringify({ error: "Invalid request" }), {
       status: 400,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }
+      headers: { ...CORS, "Content-Type": "application/json" }
     });
   }
 
   try {
     const body = await req.json();
-    const {
-      firstName, email, businessType,
-      challenge, leadSources, working, waste, goal90
-    } = body || {};
+    const { firstName, email, businessType, challenge, leadSources, working, waste, goal90 } = body || {};
 
-    // --- simple logic (same as before) ---
     let score = 60;
-    const ch = (challenge || '').toLowerCase();
+    const ch = (challenge || "").toLowerCase();
     if (!leadSources) score -= 10;
-    if (ch.includes('profit') || ch.includes('margin')) score -= 10;
+    if (ch.includes("profit") || ch.includes("margin")) score -= 10;
 
-    let positionLabel = 'Ready to Grow';
-    if (score >= 80) positionLabel = 'Primed for Scale';
-    else if (score >= 40 && score < 60) positionLabel = 'Leaky but Fixable';
-    else if (score < 40) positionLabel = 'Stalled & Unclear';
+    let positionLabel = "Ready to Grow";
+    if (score >= 80) positionLabel = "Primed for Scale";
+    else if (score >= 60) positionLabel = "Ready to Grow";
+    else if (score >= 40) positionLabel = "Leaky but Fixable";
+    else positionLabel = "Stalled & Unclear";
 
-    function movesFor(cText: string) {
-      const c = (cText || '').toLowerCase();
-      if (c.includes('lead')) {
+    function movesFor(txt: string) {
+      const c = (txt || "").toLowerCase();
+      if (c.includes("lead")) {
         return [
-          { name: 'Referral Engine Revival', what: 'Activate past/current clients for referrals', why: 'Warm intros convert faster than cold ads' },
-          { name: 'Partnership Pipeline', what: 'Co-market with complementary firms', why: 'Borrow credibility to reach ready buyers' },
-          { name: 'Focused Channel Bet', what: 'Commit to one proven channel for 90 days', why: 'Consistency compounds results' }
+          { name: "Referral Engine Revival", what: "Activate past/current clients for referrals", why: "Warm intros convert faster than cold ads" },
+          { name: "Partnership Pipeline", what: "Co-market with complementary firms", why: "Borrow credibility to reach ready buyers" },
+          { name: "Focused Channel Bet", what: "Commit to one proven channel for 90 days", why: "Consistency compounds results" }
         ];
       }
-      if (c.includes('convert') || c.includes('sales')) {
+      if (c.includes("convert") || c.includes("sales")) {
         return [
-          { name: 'Offer Clarity & Packaging', what: 'Tighten promise and pricing tiers', why: 'Clarity lifts close rate & deal size' },
-          { name: 'Proof Front-Load', what: 'Place quick wins early in the path', why: 'Reduces risk and speeds decisions' },
-          { name: 'Friction Trim', what: 'Shorten steps to first commitment', why: 'Less effort = more yeses' }
+          { name: "Offer Clarity & Packaging", what: "Tighten promise and pricing tiers", why: "Clarity lifts close rate & deal size" },
+          { name: "Proof Front-Load", what: "Place quick wins early in the path", why: "Reduces risk and speeds decisions" },
+          { name: "Friction Trim", what: "Shorten steps to first commitment", why: "Less effort = more yeses" }
         ];
       }
-      if (c.includes('profit') || c.includes('margin')) {
+      if (c.includes("profit") || c.includes("margin")) {
         return [
-          { name: 'Pricing Reset', what: 'Align pricing to ROI and bundle logically', why: 'Margin wins beat volume' },
-          { name: 'Scope Control', what: 'Set non-negotiables & change-order rules', why: 'Protects profit per engagement' },
-          { name: 'Cost-to-Serve Cleanup', what: 'Cut low-ROI services/steps', why: 'Keep only profitable work' }
+          { name: "Pricing Reset", what: "Align pricing to ROI and bundle logically", why: "Margin wins beat volume" },
+          { name: "Scope Control", what: "Set non-negotiables & change-order rules", why: "Protects profit per engagement" },
+          { name: "Cost-to-Serve Cleanup", what: "Cut low-ROI services/steps", why: "Keep only profitable work" }
         ];
       }
-      if (c.includes('capacity') || c.includes('team') || c.includes('delivery')) {
+      if (c.includes("capacity") || c.includes("team") || c.includes("delivery")) {
         return [
-          { name: 'Fulfillment Focus', what: 'Streamline delivery for one core offer', why: 'Cleaner throughput unlocks capacity' },
-          { name: 'Delegation Uplift', what: 'Shift repeatables off the founder', why: 'Frees time for growth activities' },
-          { name: 'Client Fit Filter', what: 'Tighten pre-qual & entry criteria', why: 'Smoother projects, better margins' }
+          { name: "Fulfillment Focus", what: "Streamline delivery for one core offer", why: "Cleaner throughput unlocks capacity" },
+          { name: "Delegation Uplift", what: "Shift repeatables off the founder", why: "Frees time for growth activities" },
+          { name: "Client Fit Filter", what: "Tighten pre-qual & entry criteria", why: "Smoother projects, better margins" }
         ];
       }
-      if (c.includes('pricing') || c.includes('offer')) {
+      if (c.includes("pricing") || c.includes("offer")) {
         return [
-          { name: 'Value Ladder Tune', what: 'Calibrate entry, core, premium tiers', why: 'Capture more value per client' },
-          { name: 'Outcomes Over Features', what: 'Lead with the result buyers want', why: 'People buy outcomes, not activity' },
-          { name: 'Retention Add-On', what: 'Introduce continuity/maintenance', why: 'Turns one-offs into recurring revenue' }
+          { name: "Value Ladder Tune", what: "Calibrate entry, core, premium tiers", why: "Capture more value per client" },
+          { name: "Outcomes Over Features", what: "Lead with the result buyers want", why: "People buy outcomes, not activity" },
+          { name: "Retention Add-On", what: "Introduce continuity/maintenance", why: "Turns one-offs into recurring revenue" }
         ];
       }
       return [
-        { name: 'Promise Sharpening', what: 'Define the single outcome clients want most', why: 'Clear promise attracts qualified buyers' },
-        { name: 'ICP Narrowing', what: 'Focus on the most profitable audience', why: 'Relevance beats reach' },
-        { name: 'Proof Library', what: 'Collect short specific wins & reuse them', why: 'Trust accelerates buying' }
+        { name: "Promise Sharpening", what: "Define the single outcome clients want most", why: "Clear promise attracts qualified buyers" },
+        { name: "ICP Narrowing", what: "Focus on the most profitable audience", why: "Relevance beats reach" },
+        { name: "Proof Library", what: "Collect short specific wins & reuse them", why: "Trust accelerates buying" }
       ];
     }
 
     const moves = movesFor(ch);
     const nextAction =
-      ch.includes('lead') ? 'Identify two partner brands and draft a co-promo' :
-      (ch.includes('convert') || ch.includes('sales')) ? 'Publish a crisp offer promise with one proof point' :
-      (ch.includes('profit') || ch.includes('margin')) ? 'Audit top 3 services for price/packaging uplift' :
-      'Write your one-sentence promise and the buyer it serves';
+      ch.includes("lead") ? "Identify two partner brands and draft a co-promo" :
+      (ch.includes("convert") || ch.includes("sales")) ? "Publish a crisp offer promise with one proof point" :
+      (ch.includes("profit") || ch.includes("margin")) ? "Audit top 3 services for price/packaging uplift" :
+      "Write your one-sentence promise and the buyer it serves";
 
     return new Response(JSON.stringify({ positionLabel, score, moves, nextAction }), {
       status: 200,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }
+      headers: { ...CORS, "Content-Type": "application/json" }
     });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: 'Invalid request' }), {
+  } catch {
+    return new Response(JSON.stringify({ error: "Invalid request" }), {
       status: 400,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }
+      headers: { ...CORS, "Content-Type": "application/json" }
     });
   }
 }
