@@ -2,8 +2,12 @@
   "version": 2,
   "framework": null,
   "functions": {
-    "api/growth-map.ts": {
+    "api/**/*.ts": {
       "runtime": "edge"
     }
-  }
+  },
+  "routes": [
+    { "src": "/results(?:\\.html)?$", "dest": "/results.html" },
+    { "src": "/api/(.*)", "dest": "/api/$1" }
+  ]
 }
